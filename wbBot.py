@@ -4,55 +4,6 @@ import sqlite3
 conn = sqlite3.connect('wbBot.sqlite')
 cur = conn.cursor()
 
-# Create aircraft table if one doesn't already exist
-cur.execute('''
-CREATE TABLE IF NOT EXISTS Aircraft(
-	make TEXT, 
-	model TEXT,
-	tail_number TEXT,
-	empty_weight INTEGER,
-	arm INTEGER,
-	moment INTEGER,
-	useful_load INTEGER
-)
-''')
-
-# # Insert statements
-# cur.execute('''
-# INSERT INTO Aircraft (make, model, tail_number, empty_weight, arm, moment, useful_load)
-# VALUES ("C172", "R", "N512CT", 1701.00, 40.336, 68611.53, 756);
-
-# INSERT INTO Aircraft (make, model, tail_number, empty_weight, arm, moment, useful_load)
-# VALUES ("C172", "R", "N815CT", 1709.00, 41.3024, 70585.8, 748);
-
-# INSERT INTO Aircraft (make, model, tail_number, empty_weight, arm, moment, useful_load)
-# VALUES ("C172", "S", "N512ND", 1725.3953, 41.3452, 71336.8, 832.6047);
-
-# INSERT INTO Aircraft (make, model, tail_number, empty_weight, arm, moment, useful_load)
-# VALUES ("C172", "S", "N566ND", 1725.875, 41.3139, 71302.56, 832.125);
-
-# INSERT INTO Aircraft (make, model, tail_number, empty_weight, arm, moment, useful_load)
-# VALUES ("C172", "S", "N6318D", 1675.3, 40.3512, 67600.35, 882.7);
-
-# INSERT INTO Aircraft (make, model, tail_number, empty_weight, arm, moment, useful_load)
-# VALUES ("C172", "S", "N712DS", 1685.694, 40.9612, 69047.99, 872.306);
-
-# INSERT INTO Aircraft (make, model, tail_number, empty_weight, arm, moment, useful_load)
-# VALUES ("C172", "S", "N5113J", 1714.1, 41.8105, 71667.31, 873.9);
-
-# INSERT INTO Aircraft (make, model, tail_number, empty_weight, arm, moment, useful_load)
-# VALUES ("C172", "S", "N551ND", 1724.2, 41.2777, 71170.97, 833.8);
-
-# INSERT INTO Aircraft (make, model, tail_number, empty_weight, arm, moment, useful_load)
-# VALUES ("C172", "S", "N6318L", 1703.1, 41.6, 70848.96, 854.9);
-
-# INSERT INTO Aircraft (make, model, tail_number, empty_weight, arm, moment, useful_load)
-# VALUES ("C172", "S", "N5138Q", 1714.155, 41.8095, 71667.9, 843.845);
-
-# INSERT INTO Aircraft (make, model, tail_number, empty_weight, arm, moment, useful_load)
-# VALUES ("C172", "S", "N5138G", 1714.14, 41.81, 61668.19, 843.86);
-# ''')
-
 # Define function for program quit and exit message
 def exit():
 	print('\n~ Happy landings ~\n')
@@ -64,20 +15,45 @@ def invalid():
 
 print("\n~ WB Bot at your service. Type 'done' at any time to finish ~\n")
 
-# Ask user for aircraft
+# Print out a list of available aircraft in db
+cur.execute('''SELECT tail_number FROM Aircraft ORDER BY tail_number ASC''')
+aircraftList = cur.fetchall()
+if len(aircraftList) < 1:
+	print('No aircraft in database')
+for plane in aircraftList:
+	print('>', plane[0])
+print()
+
+# Ask user for aircraft choice
 while True:
 	aircraft = input('Aircraft tail number: ')
 	if aircraft == 'done':
 		exit()
 	aircraft = aircraft.upper()
-	# Grab aircraft's empty weight, arm and moment from db
 	try:
+		# Grab aircraft's empty weight, empty arm, empty moment from db
 		cur.execute('''SELECT empty_weight FROM Aircraft WHERE tail_number=?''', (aircraft,))
 		emptyWeight = cur.fetchone()[0]
-		cur.execute('''SELECT arm FROM Aircraft WHERE tail_number=?''', (aircraft,))
+		cur.execute('''SELECT empty_arm FROM Aircraft WHERE tail_number=?''', (aircraft,))
 		arm = cur.fetchone()[0]
-		cur.execute('''SELECT moment FROM Aircraft WHERE tail_number=?''', (aircraft,))
+		cur.execute('''SELECT empty_moment FROM Aircraft WHERE tail_number=?''', (aircraft,))
 		moment = cur.fetchone()[0]
+
+		# Grab aircraft arms for frontpax, rearpax, fuel, baggage from db
+		cur.execute('''SELECT frontpax_arm FROM Aircraft WHERE tail_number=?''', (aircraft,))
+		frontpax_arm = cur.fetchone()[0]
+		cur.execute('''SELECT rearpax_arm FROM Aircraft WHERE tail_number=?''', (aircraft,))
+		rearpax_arm = cur.fetchone()[0]
+		cur.execute('''SELECT fuel_arm FROM Aircraft WHERE tail_number=?''', (aircraft,))
+		fuel_arm = cur.fetchone()[0]
+		cur.execute('''SELECT baggage_arm FROM Aircraft WHERE tail_number=?''', (aircraft,))
+		baggage_arm = cur.fetchone()[0]
+
+		# Grab aircraft type and location from db
+		cur.execute('''SELECT Type.name FROM Type JOIN Aircraft ON Type.id=Aircraft.type_id WHERE Aircraft.tail_number=?''', (aircraft,))
+		type = cur.fetchone()[0]
+		cur.execute('''SELECT Location.name FROM Location JOIN Aircraft on Location.id=Aircraft.location_id WHERE Aircraft.tail_number=?''', (aircraft,))
+		location = cur.fetchone()[0]
 		break
 	except:
 		print('Aircraft not found in database')
@@ -138,18 +114,18 @@ while True:
 		invalid()
 
 zero_weight = emptyWeight + frontPaxWeight + rearPaxWeight + baggageWeight
-zero_moment = moment + (frontPaxWeight * 37) + (rearPaxWeight * 73) + (baggageWeight * 95)
+zero_moment = moment + (frontPaxWeight * frontpax_arm) + (rearPaxWeight * rearpax_arm) + (baggageWeight * baggage_arm)
 zero_cg = round(zero_moment / zero_weight, 2)
 
 takeoff_weight = round(zero_weight + fuelWeight, 2)
-takeoff_moment = round(zero_moment + (fuelWeight * 48), 2)
+takeoff_moment = round(zero_moment + (fuelWeight * fuel_arm), 2)
 takeoff_cg = round(takeoff_moment / takeoff_weight, 2)
 
 landing_weight = round(takeoff_weight - burnWeight, 2)
-landing_moment = round(takeoff_moment - (burnWeight * 48), 2)
+landing_moment = round(takeoff_moment - (burnWeight * fuel_arm), 2)
 landing_cg = round(landing_moment / landing_weight, 2)
 
-print('\n\n~ Weight and Balance Calculations ~')
+print('\n\n~ Weight and Balance Calculations for ' + aircraft + ', ' + type + ' based in ' + location + ' ~')
 
 print()
 print('Zero fuel weight:', zero_weight)
