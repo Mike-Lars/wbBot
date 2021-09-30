@@ -1,0 +1,90 @@
+cur.execute('''
+CREATE TABLE IF NOT EXISTS Aircraft(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
+    "type_id" INTEGER,
+    "location_id" INTEGER,
+    "tail_number" TEXT,
+    "empty_weight" INTEGER,
+    "empty_arm" INTEGER,
+    "empty_moment" INTEGER,
+    "frontpax_arm" INTEGER,
+    "rearpax_arm" INTEGER,
+    "fuel_arm" INTEGER,
+    "baggage_arm" INTEGER,
+    "useful_load" INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS Type(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
+    "name" TEXT
+);
+
+CREATE TABLE IF NOT EXISTS Location(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
+    "name" TEXT
+);
+
+
+
+INSERT INTO Type (name) VALUES ("C172S");
+INSERT INTO Type (name) VALUES ("C172R");
+INSERT INTO Type (name) VALUES ("P28A");
+INSERT INTO Type (name) VALUES ("PA44");
+INSERT INTO Type (name) VALUES ("P2006T");
+INSERT INTO Type (name) VALUES ("SR20");
+
+INSERT INTO Location (name) VALUES ("San Marcos");
+INSERT INTO Location (name) VALUES ("San Diego");
+INSERT INTO Location (name) VALUES ("Dallas");
+INSERT INTO Location (name) VALUES ("Conroe");
+
+
+
+San Marcos
+
+INSERT INTO Aircraft (type_id, location_id, tail_number, empty_weight, empty_arm, empty_moment, frontpax_arm, rearpax_arm, fuel_arm, baggage_arm, useful_load)
+VALUES (1, 1, "N512ND", 1725.3953, 41.3452, 71336.8, 37, 73, 48, 95, 832.6047);
+
+INSERT INTO Aircraft (type_id, location_id, tail_number, empty_weight, empty_arm, empty_moment, frontpax_arm, rearpax_arm, fuel_arm, baggage_arm, useful_load)
+VALUES (1, 1, "N566ND", 1725.875, 41.3139, 71302.56, 37, 73, 48, 95, 832.125);
+
+INSERT INTO Aircraft (type_id, location_id, tail_number, empty_weight, empty_arm, empty_moment, frontpax_arm, rearpax_arm, fuel_arm, baggage_arm, useful_load)
+VALUES (2, 1, "N512CT", 1701.00, 40.336, 68611.53, 37, 73, 48, 95, 756);
+
+INSERT INTO Aircraft (type_id, location_id, tail_number, empty_weight, empty_arm, empty_moment, frontpax_arm, rearpax_arm, fuel_arm, baggage_arm, useful_load)
+VALUES (2, 1, "N815CT", 1709.00, 41.3024, 70585.8, 37, 73, 48, 95, 748);
+
+INSERT INTO Aircraft (type_id, location_id, tail_number, empty_weight, empty_arm, empty_moment, frontpax_arm, rearpax_arm, fuel_arm, baggage_arm, useful_load)
+VALUES (4, 1, "N999NF", 2647.2, 86.6486, 229376.20, 80.5, 118.1, 95, 142.8, 1152.80);
+
+-----
+
+San Diego
+
+INSERT INTO Aircraft (type_id, location_id, tail_number, empty_weight, empty_arm, empty_moment, frontpax_arm, rearpax_arm, fuel_arm, baggage_arm, useful_load)
+VALUES (3, 2, "N450CA", 1663.2, 88.3957, 147019.7, 80.5, 118.1, 95, 142.8, 894.8);
+
+INSERT INTO Aircraft (type_id, location_id, tail_number, empty_weight, empty_arm, empty_moment, frontpax_arm, rearpax_arm, fuel_arm, baggage_arm, useful_load)
+VALUES (3, 2, "N697CA", 1684.2, 88.6613, 149323.4, 80.5, 118.1, 95, 142.8, 873.8);
+
+
+
+
+Dallas
+
+INSERT INTO Aircraft (type_id, location_id, tail_number, empty_weight, empty_arm, empty_moment, frontpax_arm, rearpax_arm, fuel_arm, baggage_arm, useful_load)
+VALUES (3, 3, "N131CA", 1670.2, 87.9682, 146921.9, 80.5, 118.1, 95, 142.8, 887.8);
+
+INSERT INTO Aircraft (type_id, location_id, tail_number, empty_weight, empty_arm, empty_moment, frontpax_arm, rearpax_arm, fuel_arm, baggage_arm, useful_load)
+VALUES (3, 3, "N132CA", 1672.2, 87.9471, 147062.6, 80.5, 118.1, 95, 142.8, 885.8);
+
+INSERT INTO Aircraft (type_id, location_id, tail_number, empty_weight, empty_arm, empty_moment, frontpax_arm, rearpax_arm, fuel_arm, baggage_arm, useful_load)
+VALUES (4, 3, "N705CA", 2635.28, 86.32, 227477.37, 80.5, 118.1, 95, 142.8, 1164.72);
+
+
+
+
+UPDATE Type SET name="PA-44" WHERE name="PA44";
+UPDATE Type SET name="PA-28" WHERE name="P28A";
+UPDATE Type SET name="P-2006T" WHERE name="P2006T";
+
