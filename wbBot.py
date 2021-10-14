@@ -20,8 +20,7 @@ cur.execute('''SELECT tail_number FROM Aircraft ORDER BY tail_number ASC''')
 aircraftList = cur.fetchall()
 if len(aircraftList) < 1:
 	print('No aircraft in database')
-for plane in aircraftList:
-	print('>', plane[0])
+[print('>', plane[0]) for plane in aircraftList]
 print()
 
 # Ask user for aircraft choice
