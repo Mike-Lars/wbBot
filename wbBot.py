@@ -5,7 +5,7 @@ conn = sqlite3.connect('wbBot.sqlite')
 cur = conn.cursor()
 
 # Define function for program quit and exit message
-def exit():
+def finished():
 	print('\n~ Happy landings ~\n')
 	quit()
 
@@ -28,32 +28,21 @@ print()
 while True:
 	aircraft = input('Aircraft tail number: ')
 	if aircraft == 'done':
-		exit()
+		finished()
 	aircraft = aircraft.upper()
 	try:
-		# Grab aircraft's empty weight, empty arm, empty moment from db
-		cur.execute('''SELECT empty_weight FROM Aircraft WHERE tail_number=?''', (aircraft,))
-		emptyWeight = cur.fetchone()[0]
-		cur.execute('''SELECT empty_arm FROM Aircraft WHERE tail_number=?''', (aircraft,))
-		arm = cur.fetchone()[0]
-		cur.execute('''SELECT empty_moment FROM Aircraft WHERE tail_number=?''', (aircraft,))
-		moment = cur.fetchone()[0]
-
-		# Grab aircraft arms for frontpax, rearpax, fuel, baggage from db
-		cur.execute('''SELECT frontpax_arm FROM Aircraft WHERE tail_number=?''', (aircraft,))
-		frontpax_arm = cur.fetchone()[0]
-		cur.execute('''SELECT rearpax_arm FROM Aircraft WHERE tail_number=?''', (aircraft,))
-		rearpax_arm = cur.fetchone()[0]
-		cur.execute('''SELECT fuel_arm FROM Aircraft WHERE tail_number=?''', (aircraft,))
-		fuel_arm = cur.fetchone()[0]
-		cur.execute('''SELECT baggage_arm FROM Aircraft WHERE tail_number=?''', (aircraft,))
-		baggage_arm = cur.fetchone()[0]
-
-		# Grab aircraft type and location from db
-		cur.execute('''SELECT Type.name FROM Type JOIN Aircraft ON Type.id=Aircraft.type_id WHERE Aircraft.tail_number=?''', (aircraft,))
-		type = cur.fetchone()[0]
-		cur.execute('''SELECT Location.name FROM Location JOIN Aircraft on Location.id=Aircraft.location_id WHERE Aircraft.tail_number=?''', (aircraft,))
-		location = cur.fetchone()[0]
+		# Grab aircraft's metadata from db
+		cur.execute('''SELECT Aircraft.empty_weight, Aircraft.empty_arm, Aircraft.empty_moment, Aircraft.frontpax_arm, Aircraft.rearpax_arm, Aircraft.fuel_arm, Aircraft.baggage_arm, Type.name, Location.name FROM Aircraft JOIN Type JOIN Location ON Location.id=Aircraft.location_id AND Type.id=Aircraft.type_id WHERE tail_number=?''', (aircraft,))
+		mdata = cur.fetchone()
+		emptyWeight = mdata[0]
+		emptyArm = mdata[1]
+		emptyMoment = mdata[2]
+		frontpax_arm = mdata[3]
+		rearpax_arm = mdata[4]
+		fuel_arm = mdata[5]
+		baggage_arm = mdata[6]
+		type = mdata[7]
+		location = mdata[8]
 		break
 	except:
 		print('Aircraft not found in database')
@@ -62,7 +51,7 @@ while True:
 while True:
 	frontPaxWeight = input('FRONT PAX weight: ')
 	if frontPaxWeight == 'done':
-		exit()
+		finished()
 	try:
 		frontPaxWeight = int(frontPaxWeight)
 		break
@@ -73,7 +62,7 @@ while True:
 while True:
 	rearPaxWeight = input('REAR PAX weight: ')
 	if rearPaxWeight == 'done':
-		exit()
+		finished()
 	try:
 		rearPaxWeight = int(rearPaxWeight)
 		break
@@ -84,7 +73,7 @@ while True:
 while True:
 	fuelWeight = input('FUEL in gallons: ')
 	if fuelWeight == 'done':
-		exit()
+		finished()
 	try:
 		fuelWeight = int(fuelWeight) * 6
 		break
@@ -95,7 +84,7 @@ while True:
 while True:
 	baggageWeight = input('BAGGAGE weight: ')
 	if baggageWeight == 'done':
-		exit()
+		finished()
 	try:
 		baggageWeight = int(baggageWeight)
 		break
@@ -106,7 +95,7 @@ while True:
 while True:
 	burnWeight = input('FUEL BURN in gallons: ')
 	if burnWeight == 'done':
-		exit()
+		finished()
 	try:
 		burnWeight = int(burnWeight) * 6
 		break
@@ -114,33 +103,30 @@ while True:
 		invalid()
 
 zero_weight = emptyWeight + frontPaxWeight + rearPaxWeight + baggageWeight
-zero_moment = moment + (frontPaxWeight * frontpax_arm) + (rearPaxWeight * rearpax_arm) + (baggageWeight * baggage_arm)
-zero_cg = round(zero_moment / zero_weight, 2)
+zero_moment = emptyMoment + (frontPaxWeight * frontpax_arm) + (rearPaxWeight * rearpax_arm) + (baggageWeight * baggage_arm)
+zero_cg = zero_moment / zero_weight
 
-takeoff_weight = round(zero_weight + fuelWeight, 2)
-takeoff_moment = round(zero_moment + (fuelWeight * fuel_arm), 2)
-takeoff_cg = round(takeoff_moment / takeoff_weight, 2)
+takeoff_weight = zero_weight + fuelWeight
+takeoff_moment = zero_moment + (fuelWeight * fuel_arm)
+takeoff_cg = takeoff_moment / takeoff_weight
 
-landing_weight = round(takeoff_weight - burnWeight, 2)
-landing_moment = round(takeoff_moment - (burnWeight * fuel_arm), 2)
-landing_cg = round(landing_moment / landing_weight, 2)
-
-print('\n\n~ Weight and Balance Calculations for ' + aircraft + ', ' + type + ' based in ' + location + ' ~')
+landing_weight = takeoff_weight - burnWeight
+landing_moment = takeoff_moment - (burnWeight * fuel_arm)
+landing_cg = landing_moment / landing_weight
 
 print()
-print('Zero fuel weight:', zero_weight)
-print('Zero fuel CG:', zero_cg)
-print('Zero fuel moment:', zero_moment)
+print(f'~ Weight and Balance Calculations for {aircraft}, {type} based in {location} ~')
 print()
-
-print('Takeoff weight:', takeoff_weight)
-print('Takeoff CG:', takeoff_cg)
-print('Takeoff moment:', takeoff_moment)
+print(f'Zero fuel weight: {zero_weight:.2f}')
+print(f'Zero fuel CG: {zero_cg:.2f}')
+print(f'Zero fuel moment: {zero_moment:.2f}')
 print()
-
-print('Landing weight:', landing_weight)
-print('Landing CG:', landing_cg)
-print('Landing moment:', landing_moment)
+print(f'Takeoff weight: {takeoff_weight:.2f}')
+print(f'Takeoff CG: {takeoff_cg:.2f}')
+print(f'Takeoff moment: {takeoff_moment:.2f}')
 print()
-
+print(f'Landing weight: {landing_weight:.2f}')
+print(f'Landing CG: {landing_cg:.2f}')
+print(f'Landing moment: {landing_moment:.2f}')
+print()
 print('~ Happy landings ~\n')
