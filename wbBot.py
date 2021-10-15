@@ -1,17 +1,9 @@
+from defs import *
 import sqlite3
 
 # Establish db connection and make cursor
 conn = sqlite3.connect('wbBot.sqlite')
 cur = conn.cursor()
-
-# Define function for program quit and exit message
-def finished():
-	print('\n~ Happy landings ~\n')
-	quit()
-
-# Define function to handle invalid input
-def invalid():
-	print('Invalid entry')
 
 print("\n~ WB Bot at your service. Type 'done' at any time to finish ~\n")
 
